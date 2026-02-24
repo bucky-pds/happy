@@ -1,0 +1,4 @@
+bms4.lan {
+    tls internal
+    reverse_proxy happy-server:3005
+}
