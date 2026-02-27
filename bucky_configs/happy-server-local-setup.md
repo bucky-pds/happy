@@ -427,6 +427,50 @@ happy login
 
 ---
 
+## Auto-Start on Reboot (macOS)
+
+Podman is daemonless — unlike Docker, there is no persistent background daemon to honor `restart: unless-stopped` across reboots. Podman Desktop starts on login (via its own Launch Agent), but the compose stack must be started separately.
+
+Both files live in `bucky_configs/` and are checked into git:
+
+- **`bucky_configs/start-happy-server.sh`** — Polls until the Podman machine VM is ready (up to 120 seconds), then runs `podman compose up -d`. Invoked by launchd, not manually.
+- **`bucky_configs/com.bucky.happy-server.plist`** — macOS Launch Agent that runs the startup script on login.
+
+### Setup
+
+Symlink the plist into the LaunchAgents directory and register it (one-time):
+
+```bash
+ln -sf ~/happy/bucky_configs/com.bucky.happy-server.plist ~/Library/LaunchAgents/com.bucky.happy-server.plist
+launchctl load ~/Library/LaunchAgents/com.bucky.happy-server.plist
+```
+
+Using a symlink means any future changes to the plist in the repo take effect after a `launchctl unload`/`load` cycle — no need to copy the file again.
+
+### Boot sequence
+
+```
+Login → Podman Desktop starts (its own Launch Agent)
+      → Podman machine VM boots
+      → start-happy-server.sh detects VM is ready
+      → podman compose up -d
+      → happy-server stack is running
+```
+
+### Checking the autostart log
+
+```bash
+cat ~/Library/Logs/happy-server-autostart.log
+```
+
+### Unregistering (if needed)
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.bucky.happy-server.plist
+```
+
+---
+
 ## Resetting Everything
 
 To start completely fresh (wipes all data):

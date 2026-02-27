@@ -24,7 +24,7 @@ echo "==> Waiting for server to start..."
 sleep 15
 
 # Check if happy-server is running (not crash-looping)
-STATUS=$(podman inspect --format='{{.State.Status}}' happy-happy-server-1 2>/dev/null || podman inspect --format='{{.State.Status}}' happy-server-happy-server-1 2>/dev/null || echo "unknown")
+STATUS=$(podman inspect --format='{{.State.Status}}' happy-happy-server-1 2>/dev/null || echo "unknown")
 
 if [ "$STATUS" = "running" ]; then
     echo "==> Server is running"
